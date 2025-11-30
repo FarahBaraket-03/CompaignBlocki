@@ -12,6 +12,9 @@ import menu from './menu.svg';
 import money from './money.svg';
 import loader from './loader.svg';
 import thirdweb from './thirdweb.png';
+import calendar from './calendar.svg';
+import edit from './edit.svg';
+import cancel from './cancel.svg';
 
 export {
   tagType,
@@ -22,10 +25,13 @@ export {
   payment,
   profile,
   sun,
+  cancel,
   withdraw,
   search,
   menu,
   money,
   loader,
+  calendar,
+  edit,
   thirdweb,
 };

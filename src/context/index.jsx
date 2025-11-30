@@ -121,6 +121,142 @@ export const StateContextProvider = ({ children }) => {
     return contractFunctions.getShortAddress(address);
   };
 
+  const getWithdrawableCampaigns = async () => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const campaigns = await contractFunctions.getWithdrawableCampaigns();
+        setIsLoading(false);
+        return campaigns;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+  const withdrawFunds = async (pId) => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const result = await contractFunctions.withdrawFunds(pId);
+        setIsLoading(false);
+        return result;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+  const cancelCampaign = async (pId) => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const result = await contractFunctions.cancelCampaign(pId);
+        setIsLoading(false);
+        return result;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+  const claimRefundAfterCancellation = async (pId) => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const result = await contractFunctions.claimRefundAfterCancellation(pId);
+        setIsLoading(false);
+        return result;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+  const getWithdrawalStats = async () => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const stats = await contractFunctions.getWithdrawalStats();
+        setIsLoading(false);
+        return stats;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+  const checkWithdrawalEligibility = async (pId) => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const eligibility = await contractFunctions.checkWithdrawalEligibility(pId);
+        setIsLoading(false);
+        return eligibility;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+
+const getUserDonations = async () => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const donations = await contractFunctions.getUserDonations();
+        setIsLoading(false);
+        return donations;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+const getUserDonationStats = async () => {
+    try {
+        if (!isInitialized) {
+            throw new Error('Veuillez vous connecter d\'abord');
+        }
+        setIsLoading(true);
+        const stats = await contractFunctions.getUserDonationStats();
+        setIsLoading(false);
+        return stats;
+    } catch (error) {
+        setIsLoading(false);
+        throw error;
+    }
+};
+
+const updateDeadline = async (pId, newDeadline) => {
+  try {
+    if (!isInitialized) {
+      throw new Error('Veuillez vous connecter d\'abord');
+    }
+    setIsLoading(true);
+    const result = await contractFunctions.updateDeadline(pId, newDeadline);
+    setIsLoading(false);
+    return result;
+  } catch (error) {
+    setIsLoading(false);
+    throw error;
+  }
+};
+
   // Vérifier la connexion au chargement
   useEffect(() => {
     const checkConnection = async () => {
@@ -161,22 +297,32 @@ export const StateContextProvider = ({ children }) => {
 
   return (
     <StateContext.Provider
-      value={{ 
-        address,
-        isConnected,
-        isLoading,
-        isInitialized,
-        connect,
-        createCampaign,
-        getCampaigns,
-        getUserCampaigns,
-        donate,
-        getDonations,
-        getCampaignDetails,
-        getShortAddress
-      }}
+        value={{ 
+            address,
+            isConnected,
+            isLoading,
+            isInitialized,
+            connect,
+            createCampaign,
+            getCampaigns,
+            getUserCampaigns,
+            donate,
+            getDonations,
+            getCampaignDetails,
+            getShortAddress,
+            // Nouvelles méthodes pour les retraits
+            getWithdrawableCampaigns,
+            withdrawFunds,
+            cancelCampaign,
+            claimRefundAfterCancellation,
+            getWithdrawalStats,
+            checkWithdrawalEligibility,
+            getUserDonations,
+            getUserDonationStats,
+            updateDeadline
+        }}
     >
-      {children}
+        {children}
     </StateContext.Provider>
   );
 };
