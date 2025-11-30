@@ -240,10 +240,11 @@ const Withdraw = () => {
               </p>
             </div>
           ) : (
-            <form onSubmit={handleWithdraw} className="space-y-4">
+            <form onSubmit={handleWithdraw} className="space-y-4  text-slate-600">
               <FormField 
                 labelName="Sélectionner une Campagne"
                 inputType="select"
+                className="bg-[#1c1c24] border-[#3a3a43] text-slate-600"
                 value={selectedCampaign}
                 handleChange={(e) => setSelectedCampaign(e.target.value)}
                 options={campaigns.map(campaign => ({

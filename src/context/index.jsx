@@ -73,19 +73,19 @@ export const StateContextProvider = ({ children }) => {
   };
 
   const donate = async (pId, amount) => {
-    try {
-      if (!isInitialized) {
-        throw new Error('Veuillez vous connecter d\'abord');
-      }
-      setIsLoading(true);
-      const result = await contractFunctions.donate(pId, amount);
-      setIsLoading(false);
-      return result;
-    } catch (error) {
-      setIsLoading(false);
-      throw error;
+  try {
+    if (!isInitialized) {
+      throw new Error('Veuillez vous connecter d\'abord');
     }
-  };
+    setIsLoading(true);
+    const result = await contractFunctions.donate(pId, amount);
+    setIsLoading(false);
+    return result;
+  } catch (error) {
+    setIsLoading(false);
+    throw error;
+  }
+};
 
   const getDonations = async (pId) => {
     try {

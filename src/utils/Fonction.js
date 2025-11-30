@@ -1,8 +1,608 @@
 // fonctions.js
 import Web3 from 'web3';
 
-const CONTRACT_ADDRESS = '......';
-const CONTRACT_ABI = ".............";
+const CONTRACT_ADDRESS = '0x4b81330284965C390D10adB368D0cC764C758644';
+const CONTRACT_ABI = [
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "campaignId",
+                "type": "uint256"
+            }
+        ],
+        "name": "CampaignCancelled",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "campaignId",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "target",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "CampaignCreated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "campaignId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newDeadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "DeadlineUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "campaignId",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "donor",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "DonationMade",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "campaignId",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "FundsWithdrawn",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "campaignId",
+                "type": "uint256"
+            },
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "donor",
+                "type": "address"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "RefundClaimed",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "campaigns",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "title",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "target",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountCollected",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "image",
+                "type": "string"
+            },
+            {
+                "internalType": "bool",
+                "name": "isActive",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint256",
+                "name": "fundsWithdrawn",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "cancelCampaign",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "claimRefundAfterCancellation",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "claimRefundIfGoalNotMet",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_owner",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "_title",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "_description",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_target",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_deadline",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "_image",
+                "type": "string"
+            }
+        ],
+        "name": "createCampaign",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "donateToCampaign",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "donorContributions",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "getCampaignDetails",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            },
+            {
+                "internalType": "string",
+                "name": "title",
+                "type": "string"
+            },
+            {
+                "internalType": "string",
+                "name": "description",
+                "type": "string"
+            },
+            {
+                "internalType": "uint256",
+                "name": "target",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "deadline",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountCollected",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "image",
+                "type": "string"
+            },
+            {
+                "internalType": "bool",
+                "name": "isActive",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint256",
+                "name": "fundsWithdrawn",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getCampaigns",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "address",
+                        "name": "owner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "title",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "description",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "target",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "deadline",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "amountCollected",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "image",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "address[]",
+                        "name": "donators",
+                        "type": "address[]"
+                    },
+                    {
+                        "internalType": "uint256[]",
+                        "name": "donations",
+                        "type": "uint256[]"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isActive",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "fundsWithdrawn",
+                        "type": "uint256"
+                    }
+                ],
+                "internalType": "struct CrowdFunding.Campaign[]",
+                "name": "",
+                "type": "tuple[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "getDonators",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            },
+            {
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_campaignId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "_donor",
+                "type": "address"
+            }
+        ],
+        "name": "getDonorContribution",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_campaignId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "_donor",
+                "type": "address"
+            }
+        ],
+        "name": "isRefundClaimed",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "numberOfCampaigns",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "name": "refundClaimed",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "refundDonation",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_newDeadline",
+                "type": "uint256"
+            }
+        ],
+        "name": "updateDeadline",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_id",
+                "type": "uint256"
+            }
+        ],
+        "name": "withdrawFunds",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+];
 
 
 
@@ -64,6 +664,7 @@ class ContractFunctions {
             }
 
             const targetWei = this.web3.utils.toWei(form.target, 'ether');
+            console.log('🔄 Création de la campagne avec les données:', form);
             const deadlineTimestamp = Math.floor(new Date(form.deadline).getTime() / 1000);
 
             console.log('🔄 Création de campagne...', {
@@ -157,28 +758,23 @@ class ContractFunctions {
     }
 
     async donate(pId, amount) {
-        try {
-            if (!this.isInitialized || !this.contract) {
-                throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
-            }
-
-            const amountWei = this.web3.utils.toWei(amount, 'ether');
-            console.log(`🔄 Don de ${amount} ETH (${amountWei} wei) à la campagne ${pId}`);
-
-            const result = await this.contract.methods
-                .donateToCampaign(pId)
-                .send({ 
-                    from: this.account, 
-                    value: amountWei 
-                });
-
-            console.log('✅ Don effectué avec succès:', result);
-            return result;
-        } catch (error) {
-            console.error('❌ Erreur donation:', error);
-            throw error;
+    try {
+        if (!this.isInitialized || !this.contract) {
+            throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
         }
+
+        const amountWei = this.web3.utils.toWei(amount, 'ether');
+        console.log(`🔄 Don de ${amount} ETH (${amountWei} wei) à la campagne ${pId}`);
+
+        const transaction = this.contract.methods.donateToCampaign(pId).send({from: this.account, value: amountWei});
+       
+        console.log('✅ Don effectué avec succès:', transaction);
+        return transaction;
+    } catch (error) {
+        console.error('❌ Erreur donation:', error);
+        throw error;
     }
+}
 
     async getDonations(pId) {
         try {
@@ -278,45 +874,113 @@ class ContractFunctions {
         }
     }
 
-    async claimRefundAfterCancellation(pId) {
-        try {
-            if (!this.isInitialized || !this.contract) {
-                throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
-            }
 
-            console.log('🔄 Récupération fonds après annulation pour campagne:', pId);
-            const result = await this.contract.methods
-                .claimRefundAfterCancellation(pId)
-                .send({ from: this.account });
-            
-            console.log('✅ Fonds récupérés avec succès:', result);
-            return result;
-        } catch (error) {
-            console.error('❌ Erreur claimRefundAfterCancellation:', error);
-            throw error;
+    // Version ultra-simplifiée sans besoin du nom de méthode
+async sendTransactionUltraSimple(transaction, from, value = null) {
+    try {
+        const txOptions = { from };
+        
+        if (value) {
+            txOptions.value = value;
         }
-    }
-
-    async updateDeadline(pId, newDeadline) {
-        try {
-            if (!this.isInitialized || !this.contract) {
-                throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
+        
+        // Utiliser une limite de gas fixe pour toutes les opérations
+        // 300000 est généralement suffisant pour la plupart des opérations
+        txOptions.gas = '300000';
+        
+        console.log('🔄 Envoi transaction ultra simple:', {
+            from: this.getShortAddress(from),
+            value: value ? `${this.web3.utils.fromWei(value, 'ether')} ETH` : '0 ETH',
+            gas: txOptions.gas
+        });
+        
+        return await transaction.send(txOptions);
+        
+    } catch (error) {
+        console.error('❌ Erreur transaction ultra simple:', error);
+        
+        // Si erreur de gas, essayer avec une limite plus élevée
+        if (error.message.includes('gas') || error.message.includes('out of gas')) {
+            console.log('🔄 Tentative avec plus de gas (500000)...');
+            try {
+                const txOptionsRetry = { from };
+                if (value) txOptionsRetry.value = value;
+                txOptionsRetry.gas = '500000';
+                
+                return await transaction.send(txOptionsRetry);
+            } catch (retryError) {
+                console.error('❌ Erreur retry transaction:', retryError);
+                throw retryError;
             }
-
-            const newDeadlineTimestamp = Math.floor(new Date(newDeadline).getTime() / 1000);
-            console.log('🔄 Mise à jour deadline campagne:', pId, '->', newDeadlineTimestamp);
-
-            const result = await this.contract.methods
-                .updateDeadline(pId, newDeadlineTimestamp)
-                .send({ from: this.account });
-            
-            console.log('✅ Deadline mise à jour avec succès:', result);
-            return result;
-        } catch (error) {
-            console.error('❌ Erreur updateDeadline:', error);
-            throw error;
         }
+        
+        throw error;
     }
+}
+
+   // Fonction.js - Méthode updateDeadline avec gestion RPC améliorée
+async updateDeadline(pId, newDeadline) {
+    try {
+        if (!this.isInitialized || !this.contract) {
+            throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
+        }
+
+        // Vérifier qu'on a un compte connecté (nécessaire pour les transactions)
+        if (!this.account) {
+            throw new Error('Veuillez vous connecter avec MetaMask pour effectuer cette action');
+        }
+
+        // Convertir la date en timestamp
+        const newDeadlineTimestamp = Math.floor(new Date(newDeadline).getTime() / 1000);
+        const deadlineString = newDeadlineTimestamp.toString();
+        
+        console.log('🔄 Mise à jour deadline campagne:', {
+            pId: pId,
+            newDeadline: newDeadline,
+            timestamp: deadlineString,
+            account: this.getShortAddress(this.account)
+        });
+
+        // Validations
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        if (newDeadlineTimestamp <= currentTimestamp) {
+            throw new Error('La nouvelle date doit être dans le futur');
+        }
+
+        const campaign = await this.getCampaignDetails(pId);
+        if (!campaign) {
+            throw new Error('Campagne non trouvée');
+        }
+        
+        if (campaign.owner.toLowerCase() !== this.account.toLowerCase()) {
+            throw new Error('Seul le propriétaire peut modifier la date limite');
+        }
+
+        if (!campaign.isActive) {
+            throw new Error('Impossible de modifier une campagne annulée');
+        }
+
+        const currentTime = Math.floor(Date.now() / 1000);
+        if (currentTime > Number(campaign.deadline)) {
+            throw new Error('Impossible de modifier la date d\'une campagne déjà terminée');
+        }
+
+        const transaction = await this.contract.methods.updateDeadline(pId, deadlineString).send({ from: this.account });
+        // const result = await this.sendTransactionUltraSimple(transaction, this.account);
+        
+        console.log('✅ Deadline mise à jour avec succès:', transaction);
+        return transaction;
+    } catch (error) {
+        console.error('❌ Erreur updateDeadline:', error);
+        
+        // Suggestions basées sur le type d'erreur
+        if (error.message.includes('RPC') || error.message.includes('endpoint')) {
+            throw new Error('Problème de connexion réseau. Veuillez réessayer dans quelques minutes ou changer de réseau dans MetaMask.');
+        }
+        
+        throw error;
+    }
+}
 
     async getDonorContribution(campaignId, donorAddress) {
         try {
@@ -452,6 +1116,8 @@ class ContractFunctions {
     try {
         // Estimation du gas
         const gasEstimate = await transaction.estimateGas({ from });
+
+        const gasEstimateNumber = Number(gasEstimate);
         // Envoi avec buffer de sécurité
         return await transaction.send({ 
             from, 
@@ -489,7 +1155,46 @@ async withdrawFunds(pId) {
     }
 }
 
-// Méthode unique pour annuler une campagne
+
+toBigInt(value) {
+        if (typeof value === 'bigint') return value;
+        if (typeof value === 'number') return BigInt(Math.floor(value));
+        if (typeof value === 'string') {
+            // Supprimer les décimales pour les nombres à virgule
+            if (value.includes('.')) {
+                value = value.split('.')[0];
+            }
+            return BigInt(value);
+        }
+        return BigInt(value.toString());
+    }
+
+    // Méthode utilitaire pour comparer des BigInt
+    compareBigInt(a, b) {
+        const bigA = this.toBigInt(a);
+        const bigB = this.toBigInt(b);
+        if (bigA > bigB) return 1;
+        if (bigA < bigB) return -1;
+        return 0;
+    }
+
+    // Méthode utilitaire pour convertir en nombre sécurisé
+    toSafeNumber(value) {
+        try {
+            if (typeof value === 'bigint') {
+                return Number(value.toString());
+            }
+            if (typeof value === 'string') {
+                return parseInt(value, 10);
+            }
+            return Number(value);
+        } catch (error) {
+            console.warn('⚠️ Erreur conversion nombre:', error);
+            return 0;
+        }
+    }
+
+// Méthode unique pour annuler une campagne (version corrigée)
 async cancelCampaign(pId) {
     try {
         if (!this.isInitialized || !this.contract) {
@@ -504,11 +1209,16 @@ async cancelCampaign(pId) {
             throw new Error('Seul le propriétaire peut annuler la campagne');
         }
 
-        const transaction = this.contract.methods.cancelCampaign(pId);
-        const result = await this.sendTransactionWithFallback(transaction, this.account);
+        // Vérifier que la campagne est active
+        if (!campaign.isActive) {
+            throw new Error('La campagne est déjà annulée ou inactive');
+        }
+
+        const transaction = this.contract.methods.cancelCampaign(pId).send({ from: this.account });
         
-        console.log('✅ Campagne annulée avec succès:', result);
-        return result;
+        
+        console.log('✅ Campagne annulée avec succès:', transaction);
+        return transaction;
     } catch (error) {
         console.error('❌ Erreur cancelCampaign:', error);
         throw error;
