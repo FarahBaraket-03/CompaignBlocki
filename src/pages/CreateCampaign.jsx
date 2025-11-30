@@ -76,27 +76,31 @@ const CreateCampaign = () => {
       return;
     }
 
-    if (!validateForm()) {
+    // Validation des champs requis
+    if (!form.title || !form.description || !form.target || !form.deadline || !form.image) {
+      alert('Veuillez remplir tous les champs obligatoires');
       return;
     }
 
-    setIsUploading(true);
-    
+    if (new Date(form.deadline) <= new Date()) {
+      alert('La date limite doit être dans le futur');
+      return;
+    }
+
     checkIfImage(form.image, async (exists) => {
       if (exists) {
         try {
-          await createCampaign({ ...form, name: form.name || 'Anonyme' });
-          alert('🎉 Campagne créée avec succès!');
+          await createCampaign(form);
+          alert('Campagne créée avec succès!');
           navigate('/');
         } catch (error) {
           console.error('Erreur création campagne:', error);
-          alert('❌ Erreur lors de la création: ' + error.message);
+          alert('Erreur lors de la création: ' + error.message);
         }
       } else {
-        setErrors(prev => ({ ...prev, image: 'URL d\'image invalide' }));
-        setImagePreview('');
+        alert('URL d\'image invalide');
+        setForm({ ...form, image: '' });
       }
-      setIsUploading(false);
     });
   };
 
