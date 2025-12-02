@@ -298,7 +298,7 @@ const CampaignDetails = () => {
             <h1 className="font-epilogue font-bold text-[32px] text-white leading-tight">
               {campaign.title}
             </h1>
-            <div className={`inline-flex items-center px-4 py-2 rounded-full mt-2 ${statusConfig.bgColor} border ${statusConfig.borderColor}`}>
+            <div className={`inline-flex items-center px-4 py-2 rounded-full mt-2 text-${statusConfig.color}-400 ${statusConfig.bgColor} border ${statusConfig.borderColor}`}>
               <span className={`font-epilogue font-semibold text-[14px] text-${statusConfig.color}-400`}>
                 {statusConfig.text}
               </span>

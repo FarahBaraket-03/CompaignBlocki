@@ -657,42 +657,7 @@ class ContractFunctions {
         }
     }
 
-    async createCampaign(form) {
-        try {
-            if (!this.isInitialized || !this.contract) {
-                throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
-            }
-
-            const targetWei = this.web3.utils.toWei(form.target, 'ether');
-            console.log('🔄 Création de la campagne avec les données:', form);
-            const deadlineTimestamp = Math.floor(new Date(form.deadline).getTime() / 1000);
-
-            console.log('🔄 Création de campagne...', {
-                title: form.title,
-                target: form.target,
-                targetWei: targetWei,
-                deadline: form.deadline,
-                deadlineTimestamp: deadlineTimestamp
-            });
-
-            const result = await this.contract.methods
-                .createCampaign(
-                    this.account,
-                    form.title,
-                    form.description,
-                    targetWei,
-                    deadlineTimestamp,
-                    form.image
-                )
-                .send({ from: this.account });
-
-            console.log('✅ Campagne créée avec succès:', result);
-            return result;
-        } catch (error) {
-            console.error('❌ Erreur création campagne:', error);
-            throw error;
-        }
-    }
+    
 
     async getCampaigns() {
         try {
@@ -811,9 +776,7 @@ class ContractFunctions {
                 throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
             }
 
-            console.log('🔄 Récupération détails campagne:', pId);
             const details = await this.contract.methods.getCampaignDetails(pId).call();
-            console.log('Détails bruts:', details);
 
             const parsedDetails = {
                 owner: details.owner,
@@ -1246,8 +1209,8 @@ async claimRefundAfterCancellation(pId) {
             throw new Error('La campagne doit être annulée pour récupérer les fonds');
         }
 
-        const transaction = this.contract.methods.claimRefundAfterCancellation(pId);
-        const result = await this.sendTransactionWithFallback(transaction, this.account);
+        const result = this.contract.methods.claimRefundAfterCancellation(pId).send({ from: this.account });
+        
         
         console.log('✅ Fonds récupérés avec succès:', result);
         return result;
@@ -1293,8 +1256,6 @@ async checkWithdrawalEligibility(pId) {
         throw error;
     }
 }
-
-
 
 // Méthode pour récupérer tous les dons d'un utilisateur
     async getUserDonations() {
@@ -1445,8 +1406,30 @@ async checkWithdrawalEligibility(pId) {
     }
     }
 
+    // Dans la classe ContractFunctions (Fonction.js)
+async getDonatorsnum(pId) {
+    try {
+        if (!this.isInitialized || !this.contract) {
+            throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
+        }
+        
+        console.log('🔄 Récupération du nombre de donateurs pour campagne:', pId);
+        
+        // Récupération directe du nombre de donateurs (plus efficace)
+        const donations = await this.contract.methods.getDonators(pId).call();
+        const numberOfDonators = donations[0].length;
+        
+        console.log(`Nombre de donateurs pour campagne ${pId}:`, numberOfDonators);
+        return numberOfDonators;
+    } catch (error) {
+        console.error('❌ Erreur getDonatorsnum:', error);
+        // Retourner 0 en cas d'erreur
+        return 0;
+    }
 }
 
+
+}
 
 
 export default new ContractFunctions();

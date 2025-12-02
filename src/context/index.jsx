@@ -181,6 +181,48 @@ export const StateContextProvider = ({ children }) => {
     }
 };
 
+  
+
+  const refundDonation = async (pId) =>{
+        try {
+            if (!isInitialized) {
+                throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
+            }
+
+            console.log('🔄 Remboursement pour campagne:', pId);
+            setIsLoading(true);
+            const result = await contractFunctions.refundDonation(pId);
+            console.log('✅ Remboursement effectué avec succès:', result);
+            setIsLoading(false);
+            return result;
+        } catch (error) {
+          setIsLoading(false);
+            console.error('❌ Erreur refundDonation:', error);
+            throw error;
+        }
+    };
+
+
+  const claimRefundIfGoalNotMet = async(pId) => {
+        try {
+            if (!isInitialized ) {
+                throw new Error('Contrat non initialisé. Veuillez vous connecter d\'abord.');
+            }
+
+            console.log('🔄 Remboursement objectif non atteint pour campagne:', pId);
+            setIsLoading(true);
+            const result = await contractFunctions.claimRefundIfGoalNotMet(pId)
+            
+            console.log('✅ Remboursement effectué avec succès:', result);
+            setIsLoading(false);
+            return result;
+        } catch (error) {
+          setIsLoading(false);
+            console.error('❌ Erreur claimRefundIfGoalNotMet:', error);
+            throw error;
+        }
+    };
+
   const getWithdrawalStats = async () => {
     try {
         if (!isInitialized) {
@@ -257,6 +299,23 @@ const updateDeadline = async (pId, newDeadline) => {
   }
 };
 
+
+const getDonatorsnum = async (pId) => {
+  try {
+    if (!isInitialized) {
+      throw new Error('Veuillez vous connecter d\'abord');
+    }
+    setIsLoading(true);
+    const donators = await contractFunctions.getDonatorsnum(pId);
+    setIsLoading(false);
+    console.log('Nombre de donateurs pour la campagne', pId, ':', donators);
+    return donators;
+  } catch (error) {
+    setIsLoading(false);
+    throw error;
+  }
+};
+
   // Vérifier la connexion au chargement
   useEffect(() => {
     const checkConnection = async () => {
@@ -319,7 +378,10 @@ const updateDeadline = async (pId, newDeadline) => {
             checkWithdrawalEligibility,
             getUserDonations,
             getUserDonationStats,
-            updateDeadline
+            updateDeadline,
+            refundDonation,
+            claimRefundIfGoalNotMet,
+            getDonatorsnum
         }}
     >
         {children}

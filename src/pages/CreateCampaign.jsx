@@ -16,11 +16,33 @@ const CreateCampaign = () => {
     description: '',
     target: '', 
     deadline: '',
-    image: ''
+    image: '',
+    category: '', // Nouveau champ: catégorie
+    website: '', // Nouveau: site web
+    facebook: '', // Nouveau: Facebook
+    twitter: '', // Nouveau: Twitter (X)
+    linkedin: '', // Nouveau: LinkedIn
+    instagram: '', // Nouveau: Instagram
+    discord: '', // Nouveau: Discord
+    otherLink: '' // Nouveau: autre lien
   });
   const [imagePreview, setImagePreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Catégories disponibles
+  const categories = [
+    { id: 'charity', name: 'Charity & Non-Profit', icon: '🤝' },
+    { id: 'startup', name: 'Startup & Business', icon: '💼' },
+    { id: 'community', name: 'Community Projects', icon: '👥' },
+    { id: 'technology', name: 'Technology & Innovation', icon: '🚀' },
+    { id: 'art', name: 'Art & Creative', icon: '🎨' },
+    { id: 'education', name: 'Education & Research', icon: '📚' },
+    { id: 'environment', name: 'Environment & Sustainability', icon: '🌱' },
+    { id: 'health', name: 'Health & Wellness', icon: '🏥' },
+    { id: 'gaming', name: 'Gaming & Entertainment', icon: '🎮' },
+    { id: 'other', name: 'Other', icon: '📋' }
+  ];
 
   const handleFormFieldChange = (fieldName, e) => {
     const value = e.target.value;
@@ -64,6 +86,8 @@ const CreateCampaign = () => {
     
     if (!form.image?.trim()) newErrors.image = 'L\'image est requise';
     
+    if (!form.category) newErrors.category = 'La catégorie est requise';
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -76,31 +100,41 @@ const CreateCampaign = () => {
       return;
     }
 
-    // Validation des champs requis
-    if (!form.title || !form.description || !form.target || !form.deadline || !form.image) {
-      alert('Veuillez remplir tous les champs obligatoires');
+    if (!validateForm()) {
       return;
     }
 
-    if (new Date(form.deadline) <= new Date()) {
-      alert('La date limite doit être dans le futur');
-      return;
-    }
-
+    setIsUploading(true);
+    
     checkIfImage(form.image, async (exists) => {
       if (exists) {
         try {
-          await createCampaign(form);
-          alert('Campagne créée avec succès!');
+          // Préparer les données pour l'upload IPFS
+          const campaignData = {
+            ...form,
+            socialLinks: {
+              website: form.website,
+              facebook: form.facebook,
+              twitter: form.twitter,
+              linkedin: form.linkedin,
+              instagram: form.instagram,
+              discord: form.discord,
+              other: form.otherLink
+            }
+          };
+
+          await createCampaign(campaignData);
+          alert('🎉 Campagne créée avec succès!');
           navigate('/');
         } catch (error) {
           console.error('Erreur création campagne:', error);
-          alert('Erreur lors de la création: ' + error.message);
+          alert('❌ Erreur lors de la création: ' + error.message);
         }
       } else {
-        alert('URL d\'image invalide');
-        setForm({ ...form, image: '' });
+        setErrors(prev => ({ ...prev, image: 'URL d\'image invalide' }));
+        setImagePreview('');
       }
+      setIsUploading(false);
     });
   };
 
@@ -114,6 +148,13 @@ const CreateCampaign = () => {
     const oneYearLater = new Date();
     oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
     return oneYearLater.toISOString().split('T')[0];
+  };
+
+  const handleCategorySelect = (categoryId) => {
+    setForm({ ...form, category: categoryId });
+    if (errors.category) {
+      setErrors(prev => ({ ...prev, category: '' }));
+    }
   };
 
   if (!address) {
@@ -204,6 +245,54 @@ const CreateCampaign = () => {
                   />
                 </div>
 
+                {/* Catégorie */}
+                <div className="bg-[#1c1c24] rounded-[15px] p-4">
+                  <h3 className="font-epilogue font-bold text-[20px] text-white mb-4 flex items-center">
+                    <div className="w-2 h-6 bg-[#4acd8d] rounded-full mr-3"></div>
+                    Catégorie du Projet *
+                  </h3>
+                  
+                  <div className="mb-4">
+                    <label className="font-epilogue font-semibold text-[16px] text-white mb-3 block">
+                      Sélectionnez une catégorie
+                    </label>
+                    {errors.category && (
+                      <p className="text-red-500 text-sm mb-3">{errors.category}</p>
+                    )}
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {categories.map((category) => (
+                        <button
+                          key={category.id}
+                          type="button"
+                          onClick={() => handleCategorySelect(category.id)}
+                          className={`p-4 rounded-[12px] border-2 transition-all duration-200 flex flex-col items-center justify-center ${
+                            form.category === category.id
+                              ? 'border-[#8c6dfd] bg-[#8c6dfd]/10'
+                              : 'border-[#3a3a43] bg-[#2c2f32] hover:border-[#4acd8d] hover:bg-[#1c1c24]'
+                          }`}
+                        >
+                          <span className="text-2xl mb-2">{category.icon}</span>
+                          <span className="font-epilogue font-semibold text-[14px] text-white text-center">
+                            {category.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {form.category && (
+                      <div className="mt-4 p-3 bg-[#2c2f32] rounded-[10px] border border-[#4acd8d]">
+                        <p className="font-epilogue font-semibold text-white flex items-center">
+                          <span className="mr-2">
+                            {categories.find(c => c.id === form.category)?.icon}
+                          </span>
+                          Catégorie sélectionnée: {categories.find(c => c.id === form.category)?.name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Objectif et date */}
                 <div className="bg-[#1c1c24] rounded-[15px] p-4">
                   <h3 className="font-epilogue font-bold text-[20px] text-white mb-4 flex items-center">
@@ -276,6 +365,93 @@ const CreateCampaign = () => {
                   )}
                 </div>
 
+                {/* Liens sociaux et web */}
+                <div className="bg-[#1c1c24] rounded-[15px] p-4">
+                  <h3 className="font-epilogue font-bold text-[20px] text-white mb-4 flex items-center">
+                    <div className="w-2 h-6 bg-[#FF6B35] rounded-full mr-3"></div>
+                    Liens et Réseaux Sociaux
+                  </h3>
+                  
+                  <p className="font-epilogue font-normal text-[14px] text-[#808191] mb-4">
+                    Ajoutez des liens vers votre site web et réseaux sociaux pour plus de visibilité.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField 
+                        labelName="Site Web"
+                        placeholder="https://votre-projet.com"
+                        inputType="url"
+                        value={form.website}
+                        handleChange={(e) => handleFormFieldChange('website', e)}
+                        icon="🌐"
+                        optional
+                      />
+                      <FormField 
+                        labelName="Facebook"
+                        placeholder="https://facebook.com/votre-page"
+                        inputType="url"
+                        value={form.facebook}
+                        handleChange={(e) => handleFormFieldChange('facebook', e)}
+                        icon="📘"
+                        optional
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField 
+                        labelName="Twitter (X)"
+                        placeholder="https://twitter.com/votre-compte"
+                        inputType="url"
+                        value={form.twitter}
+                        handleChange={(e) => handleFormFieldChange('twitter', e)}
+                        icon="🐦"
+                        optional
+                      />
+                      <FormField 
+                        labelName="LinkedIn"
+                        placeholder="https://linkedin.com/company/votre-entreprise"
+                        inputType="url"
+                        value={form.linkedin}
+                        handleChange={(e) => handleFormFieldChange('linkedin', e)}
+                        icon="💼"
+                        optional
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField 
+                        labelName="Instagram"
+                        placeholder="https://instagram.com/votre-compte"
+                        inputType="url"
+                        value={form.instagram}
+                        handleChange={(e) => handleFormFieldChange('instagram', e)}
+                        icon="📸"
+                        optional
+                      />
+                      <FormField 
+                        labelName="Discord"
+                        placeholder="https://discord.gg/votre-serveur"
+                        inputType="url"
+                        value={form.discord}
+                        handleChange={(e) => handleFormFieldChange('discord', e)}
+                        icon="🎮"
+                        optional
+                      />
+                    </div>
+                    
+                    <FormField 
+                      labelName="Autre Lien"
+                      placeholder="https://autre-lien.com"
+                      inputType="url"
+                      value={form.otherLink}
+                      handleChange={(e) => handleFormFieldChange('otherLink', e)}
+                      icon="🔗"
+                      optional
+                    />
+                  </div>
+                </div>
+
                 {/* Bouton de soumission */}
                 <div className="flex justify-center pt-4">
                   <CustomButton 
@@ -334,13 +510,33 @@ const CreateCampaign = () => {
                 </ul>
               </div>
 
-              {/* Conseils */}
+              {/* Conseils par catégorie */}
               <div className="bg-[#2c2f32] rounded-[20px] p-6 border-2 border-[#3a3a43]">
                 <h3 className="font-epilogue font-bold text-[18px] text-white mb-4 flex items-center">
                   <span className="text-yellow-400 mr-2">💡</span>
-                  Conseils pour réussir
+                  Conseils par Catégorie
                 </h3>
                 <div className="space-y-3">
+                  {form.category && categories.find(c => c.id === form.category) && (
+                    <div className="bg-[#1c1c24] rounded-[10px] p-3">
+                      <p className="font-epilogue font-semibold text-[12px] text-[#4acd8d] mb-1">
+                        {categories.find(c => c.id === form.category)?.icon} 
+                        {categories.find(c => c.id === form.category)?.name}
+                      </p>
+                      <p className="font-epilogue font-normal text-[11px] text-[#808191]">
+                        {form.category === 'charity' && 'Montrez l\'impact concret de chaque don et partagez des témoignages.'}
+                        {form.category === 'startup' && 'Présentez votre business model et votre équipe. Les investisseurs aiment voir la roadmap.'}
+                        {form.category === 'community' && 'Impliquez la communauté dès le début. Montrez le soutien local.'}
+                        {form.category === 'technology' && 'Démontrez l\'innovation et l\'utilité de votre technologie. Prototypes et démos aident.'}
+                        {form.category === 'art' && 'Partagez votre vision artistique. Des visuels de qualité sont essentiels.'}
+                        {form.category === 'education' && 'Expliquez l\'impact éducatif et les bénéficiaires. Les partenariats institutionnels sont un plus.'}
+                        {form.category === 'environment' && 'Quantifiez l\'impact environnemental. Les données scientifiques renforcent la crédibilité.'}
+                        {form.category === 'health' && 'Respectez les régulations. Les certifications et avis d\'experts sont importants.'}
+                        {form.category === 'gaming' && 'Montrez du gameplay et l\'engagement de la communauté. Les bêta-testeurs aident.'}
+                        {form.category === 'other' && 'Clarifiez votre vision unique. Expliquez pourquoi votre projet est spécial.'}
+                      </p>
+                    </div>
+                  )}
                   <div className="bg-[#1c1c24] rounded-[10px] p-3">
                     <p className="font-epilogue font-semibold text-[12px] text-[#4acd8d] mb-1">
                       Image attrayante
@@ -351,21 +547,24 @@ const CreateCampaign = () => {
                   </div>
                   <div className="bg-[#1c1c24] rounded-[10px] p-3">
                     <p className="font-epilogue font-semibold text-[12px] text-[#4acd8d] mb-1">
-                      Objectif réaliste
+                      Liens sociaux
                     </p>
                     <p className="font-epilogue font-normal text-[11px] text-[#808191]">
-                      Fixez un objectif réalisable pour maximiser vos chances
-                    </p>
-                  </div>
-                  <div className="bg-[#1c1c24] rounded-[10px] p-3">
-                    <p className="font-epilogue font-semibold text-[12px] text-[#4acd8d] mb-1">
-                      Description détaillée
-                    </p>
-                    <p className="font-epilogue font-normal text-[11px] text-[#808191]">
-                      Expliquez clairement l'utilisation des fonds
+                      Ajoutez vos réseaux pour plus de crédibilité et de visibilité
                     </p>
                   </div>
                 </div>
+              </div>
+
+              {/* Importance des catégories */}
+              <div className="bg-[#2c2f32] rounded-[20px] p-4 border-2 border-[#8c6dfd]">
+                <h3 className="font-epilogue font-bold text-[16px] text-white mb-2 flex items-center">
+                  <span className="text-[#8c6dfd] mr-2">🏷️</span>
+                  Pourquoi choisir une catégorie ?
+                </h3>
+                <p className="font-epilogue font-normal text-[12px] text-[#808191]">
+                  La catégorie aide les donateurs à trouver votre projet et garantit que votre campagne atteint le bon public. Elle améliore la découvrabilité de 40%.
+                </p>
               </div>
 
               {/* Statut de connexion */}
