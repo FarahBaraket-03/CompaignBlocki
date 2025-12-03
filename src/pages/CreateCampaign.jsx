@@ -1,5 +1,5 @@
 // pages/CreateCampaign.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useStateContext } from '../context';
@@ -17,19 +17,204 @@ const CreateCampaign = () => {
     target: '', 
     deadline: '',
     image: '',
-    category: '', // Nouveau champ: catégorie
-    website: '', // Nouveau: site web
-    facebook: '', // Nouveau: Facebook
-    twitter: '', // Nouveau: Twitter (X)
-    linkedin: '', // Nouveau: LinkedIn
-    instagram: '', // Nouveau: Instagram
-    discord: '', // Nouveau: Discord
-    otherLink: '' // Nouveau: autre lien
+    category: '',
+    website: '',
+    facebook: '',
+    twitter: '',
+    linkedin: '',
+    instagram: '',
+    discord: '',
+    otherLink: ''
   });
   const [imagePreview, setImagePreview] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showAIModal, setShowAIModal] = useState(false);
+  
+  // AI Suggestion States
+  const [isAILoading, setIsAILoading] = useState(false);
+  const [aiInput, setAiInput] = useState('');
+  const [aiError, setAiError] = useState('');
+  const [aiSuggestions, setAiSuggestions] = useState(null);
 
+  const [n8nStatus, setN8nStatus] = useState('pending');
+
+  // Vérifier la connexion n8n au chargement
+  useEffect(() => {
+    checkN8nConnection();
+  }, []);
+
+  const checkN8nConnection = async () => {
+    try {
+      const response = await fetch('https://nonunified-maxwell-noisome.ngrok-free.dev/webhook/test');
+      if (response.ok) {
+        setN8nStatus('connected');
+      } else {
+        setN8nStatus('error');
+      }
+    } catch (error) {
+      setN8nStatus('error');
+    }
+  };
+
+  const getAISuggestions = async (title, description) => {
+    setIsAILoading(true);
+    setAiError('');
+    setAiSuggestions(null);
+    console.log('Demande de suggestions IA avec:', { title, description, prompt: aiInput });
+    try {
+      const response = await fetch('https://nonunified-maxwell-noisome.ngrok-free.dev/webhook/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title, 
+          description,
+          prompt: aiInput || "Génère une description optimisée pour une campagne de crowdfunding"
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setAiSuggestions(data.myField);
+        console.log('Suggestions IA reçues:', aiSuggestions);
+        setIsAILoading(false);
+        return data;
+      } else {
+        const errorText = await response.text();
+        setAiError(`Erreur ${response.status}: ${errorText}`);
+        setIsAILoading(false);
+        return null;
+      }
+    } catch (error) {
+      console.error('Erreur AI suggestions:', error);
+      setAiError('Erreur de connexion au serveur AI');
+      setIsAILoading(false);
+      return null;
+    }
+  };
+
+  const applyAISuggestion = (suggestion) => {
+    setForm(prev => ({ ...prev, description: suggestion }));
+    setShowAIModal(false);
+    setAiInput('');
+    setAiSuggestions(null);
+    setAiError('');
+  };
+
+  const AISuggestionModal = () => (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#2c2f32] rounded-[20px] p-6 max-w-md w-full border-2 border-[#8c6dfd] animate-fadeIn max-h-[80vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-[#8c6dfd] to-[#4acd8d] rounded-full flex items-center justify-center mr-3 animate-pulse">
+              <span className="text-white text-lg">🤖</span>
+            </div>
+            <div>
+              <h3 className="font-epilogue font-bold text-[20px] text-white">
+                Assistant IA
+              </h3>
+              <div className="flex items-center mt-1">
+                <div className={`w-2 h-2 rounded-full mr-2 ${
+                  n8nStatus === 'connected' ? 'bg-green-500' :
+                  n8nStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+                }`}></div>
+                <p className="font-epilogue font-normal text-[12px] text-[#808191]">
+                  {n8nStatus === 'connected' ? 'Connecté à n8n' :
+                   n8nStatus === 'error' ? 'Déconnecté' : 'Vérification...'}
+                </p>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setShowAIModal(false);
+              setAiInput('');
+              setAiError('');
+              setAiSuggestions(null);
+            }}
+            className="text-[#808191] hover:text-white text-2xl transition-colors"
+            disabled={isAILoading}
+          >
+            ×
+          </button>
+        </div>
+        
+        <div className="mb-4">
+          <label className="font-epilogue font-semibold text-[14px] text-white mb-2 block">
+            Titre actuel: 
+          </label>
+          <div className="bg-[#1c1c24] p-3 rounded-[10px] border border-[#3a3a43]">
+            <p className="text-white">{form.title || "Aucun titre fourni"}</p>
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <label className="font-epilogue font-semibold text-[14px] text-white mb-2 block">
+            Instructions pour l'IA (optionnel):
+          </label>
+          <textarea
+            placeholder="Ex: 'Rends la description plus professionnelle', 'Ajoute des détails sur l'impact', 'Fais une version courte'..."
+            value={aiInput}
+            onChange={(e) => setAiInput(e.target.value)}
+            rows={3}
+            className="w-full bg-[#1c1c24] border-2 border-[#3a3a43] rounded-[10px] py-3 px-4 text-white font-epilogue font-normal text-[14px] placeholder-[#4b5264] focus:border-[#8c6dfd] focus:outline-none resize-none"
+          />
+        </div>
+        
+        {isAILoading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#8c6dfd] mx-auto mb-4"></div>
+            <p className="text-white">Génération des suggestions IA...</p>
+          </div>
+        ) : aiError ? (
+          <div className="bg-red-500/20 border border-red-500 rounded-[10px] p-4 mb-4">
+            <p className="text-red-400">{aiError}</p>
+          </div>
+        ) : aiSuggestions ? (
+          <div className="space-y-4">
+            <h4 className="font-epilogue font-bold text-[16px] text-white">
+              Suggestions générées:
+            </h4>
+            {aiSuggestions && (
+              <div  
+                className="bg-[#1c1c24] border border-[#3a3a43] rounded-[10px] p-4 hover:border-[#8c6dfd] transition-colors cursor-pointer"
+                onClick={() => applyAISuggestion(aiSuggestions)}
+              >
+                <p className="text-white text-sm mb-2">{aiSuggestions}</p>
+                <button className="text-[#8c6dfd] text-xs font-semibold">
+                  👆 Cliquer pour appliquer
+                </button>
+              </div>
+            )}
+          </div>
+        ) : null}
+        
+        <div className="flex justify-between mt-6">
+          <button
+            type="button"
+            onClick={() => setShowAIModal(false)}
+            className="px-4 py-2 bg-[#3a3a43] text-white rounded-[10px] font-semibold hover:bg-[#4b4b57] transition-colors"
+          >
+            Annuler
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => getAISuggestions(form.title, form.description || aiInput)}
+            disabled={isAILoading || !form.title?.trim()}
+            className={`px-4 py-2 rounded-[10px] font-semibold transition-colors ${
+              isAILoading || !form.title?.trim()
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-[#8c6dfd] to-[#4acd8d] text-white hover:from-[#7b5dfa] hover:to-[#3dbc7d]'
+            }`}
+          >
+            {aiSuggestions ? '🔁 Regénérer' : '✨ Générer des suggestions'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+  
   // Catégories disponibles
   const categories = [
     { id: 'charity', name: 'Charity & Non-Profit', icon: '🤝' },
@@ -185,6 +370,9 @@ const CreateCampaign = () => {
     <div className="min-h-screen bg-gradient-to-br from-[#1c1c24] to-[#2c2f32] py-8 px-2">
       {(isLoading || isUploading) && <Loader message={isUploading ? "Validation de l'image..." : "Création de la campagne..."} />}
       
+      {/* Modal d'assistant IA */}
+      {showAIModal && <AISuggestionModal />}
+      
       <div className="max-w-1xl mx-auto">
         {/* En-tête */}
         <div className="text-center mb-8">
@@ -234,15 +422,79 @@ const CreateCampaign = () => {
                     />
                   </div>
                   
-                  <FormField 
-                    labelName="Description *"
-                    placeholder="Décrivez votre projet en détail... Quelle est sa mission ? Comment les fonds seront-ils utilisés ?"
-                    isTextArea
-                    value={form.description}
-                    handleChange={(e) => handleFormFieldChange('description', e)}
-                    error={errors.description}
-                    rows={4}
-                  />
+                  {/* Description avec IA */}
+                  <div className="mt-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="font-epilogue font-semibold text-[14px] leading-[22px] text-white">
+                        Description *
+                      </label>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAIModal(true)}
+                          disabled={!form.title?.trim()}
+                          className={`flex items-center px-3 py-1 rounded-[8px] font-epilogue font-semibold text-[12px] transition-all ${
+                            !form.title?.trim()
+                              ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                              : 'bg-gradient-to-r from-[#8c6dfd] to-[#4acd8d] text-white hover:from-[#7b5dfa] hover:to-[#3dbc7d] hover:shadow-lg'
+                          }`}
+                        >
+                          <span className="mr-1">🤖</span>
+                          Assistant IA
+                        </button>
+                        
+                        {form.description && (
+                          <button
+                            type="button"
+                            onClick={() => setForm(prev => ({ ...prev, description: '' }))}
+                            className="px-2 py-1 bg-[#3a3a43] text-white rounded-[6px] text-xs hover:bg-[#4b4b57]"
+                          >
+                            Effacer
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <textarea
+                      placeholder="Décrivez votre projet en détail... Quelle est sa mission ? Comment les fonds seront-ils utilisés ? Cliquez sur 'Assistant IA' pour générer automatiquement une description professionnelle."
+                      value={form.description}
+                      onChange={(e) => handleFormFieldChange('description', e)}
+                      rows={6}
+                      className={`w-full bg-[#1c1c24] border-2 ${
+                        errors.description ? 'border-red-500' : 'border-[#3a3a43]'
+                      } rounded-[10px] py-3 px-4 text-white font-epilogue font-normal text-[14px] placeholder-[#4b5264] focus:border-[#8c6dfd] focus:outline-none resize-none transition-colors`}
+                    />
+                    
+                    {errors.description && (
+                      <p className="text-red-400 text-sm mt-1">{errors.description}</p>
+                    )}
+                    
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="flex items-center space-x-4">
+                        <p className="text-[#808191] text-xs">
+                          {form.description.length} caractères
+                        </p>
+                        <p className={`text-xs ${
+                          form.description.length < 20 ? 'text-red-400' : 'text-green-400'
+                        }`}>
+                          {form.description.length < 20 ? 'Minimum 20 caractères' : '✓ Longueur suffisante'}
+                        </p>
+                      </div>
+                      
+                      {form.description.length > 0 && (
+                        <div className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full mr-1 ${
+                            form.description.length < 50 ? 'bg-red-500' : 
+                            form.description.length < 150 ? 'bg-yellow-500' : 'bg-green-500'
+                          }`}></div>
+                          <span className="text-[#808191] text-xs">
+                            {form.description.length < 50 ? 'Court' : 
+                             form.description.length < 150 ? 'Moyen' : 'Détaillé'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Catégorie */}
@@ -563,7 +815,7 @@ const CreateCampaign = () => {
                   Pourquoi choisir une catégorie ?
                 </h3>
                 <p className="font-epilogue font-normal text-[12px] text-[#808191]">
-                  La catégorie aide les donateurs à trouver votre projet et garantit que votre campagne atteint le bon public. Elle améliore la découvrabilité de 40%.
+                  La catégorie aide les donateurs à trouver votre projet et garantis que votre campagne atteint le bon public. Elle améliore la découvrabilité de 40%.
                 </p>
               </div>
 

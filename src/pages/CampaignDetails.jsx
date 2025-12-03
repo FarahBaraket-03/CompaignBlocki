@@ -29,6 +29,8 @@ const CampaignDetails = () => {
   const [withdrawalEligibility, setWithdrawalEligibility] = useState(null);
   const [pageLoading, setPageLoading] = useState(true);
 
+  
+
   // Icônes alternatives en texte/emoji
   const icons = {
     calendar: '📅',
