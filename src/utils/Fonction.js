@@ -1107,8 +1107,8 @@ async withdrawFunds(pId) {
             throw new Error(eligibility.message);
         }
 
-        const transaction = this.contract.methods.withdrawFunds(pId);
-        const result = await this.sendTransactionWithFallback(transaction, this.account);
+        const result = this.contract.methods.withdrawFunds(pId).send({ from: this.account });
+        
         
         console.log('✅ Fonds retirés avec succès:', result);
         return result;
